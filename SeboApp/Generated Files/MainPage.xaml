@@ -1,0 +1,23 @@
+﻿<Page x:ConnectionId='1'
+    x:Class="SeboApp.MainPage"
+    Name="Page1"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:SeboApp"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"                     >
+
+    <Grid x:ConnectionId='2' Name = "LayoutGrid"  Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+
+        </Grid.RowDefinitions>
+        <TextBlock x:ConnectionId='3' x:Name="textBlock" HorizontalAlignment="Left" Margin="55,61,0,0" TextWrapping="Wrap" Text="Find a workorder:" VerticalAlignment="Top" Width="167"/>
+        <TextBox x:ConnectionId='4' x:Name="resultTextBox" HorizontalAlignment="Left" Margin="55,149,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="273" Height="541" IsReadOnly="True"/>
+        <ProgressBar x:ConnectionId='5' x:Name="progressBar" HorizontalAlignment="Left" Height="21" Margin="55,123,0,0" VerticalAlignment="Top" Width="273" Value="0" Foreground="#FF5DFF00" Background="Red"/>
+        <Button x:ConnectionId='6' x:Name="CS40Path" Visibility="Collapsed" Content="Set Path to CS40" HorizontalAlignment="Left" Margin="55,24,0,0" VerticalAlignment="Top"                       />
+        <Button x:ConnectionId='7' x:Name="CS45Path" Visibility="Collapsed" Content="Set Path to CS45" HorizontalAlignment="Left" Margin="198,24,0,0" VerticalAlignment="Top"                       />
+        <AutoSuggestBox x:ConnectionId='8' Name="searchTextBox" HorizontalAlignment="Left" Margin="55,86,0,0" VerticalAlignment="Top" Width="190" QueryIcon="Find" PlaceholderText="Search"                                                                                                                                           />
+    </Grid>
+</Page>
+
