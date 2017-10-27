@@ -362,8 +362,10 @@ void SeboApp::MainPage::SerializeConfig()
 	create_task(storageFolder->GetFileAsync("config.txt")).then([=](StorageFile^ sampleFile)
 	{
 		//Write text to a file
-		create_task(FileIO::WriteTextAsync(sampleFile, "CS40 Key = " + CS40token + "\r\n"));
-		create_task(FileIO::AppendTextAsync(sampleFile, "CS45 Key = " + CS45token + "\r\n"));
+		create_task(FileIO::WriteTextAsync(sampleFile, "CS40 Key = " + CS40token + "\r\n"))
+			.then([sampleFile, this](void) {
+			create_task(FileIO::AppendTextAsync(sampleFile, "CS45 Key = " + CS45token + "\r\n"));
+		});
 	});
 }
 
