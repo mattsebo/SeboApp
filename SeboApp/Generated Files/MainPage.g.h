@@ -17,6 +17,7 @@ namespace Windows {
                 ref class ProgressBar;
                 ref class Button;
                 ref class AutoSuggestBox;
+                ref class CalendarView;
             }
         }
     }
@@ -43,7 +44,12 @@ namespace SeboApp
         private: ::Windows::UI::Xaml::Controls::ProgressBar^ progressBar;
         private: ::Windows::UI::Xaml::Controls::Button^ CS40Path;
         private: ::Windows::UI::Xaml::Controls::Button^ CS45Path;
+        private: ::Windows::UI::Xaml::Controls::Button^ SetTimeLog;
         private: ::Windows::UI::Xaml::Controls::AutoSuggestBox^ searchTextBox;
+        private: ::Windows::UI::Xaml::Controls::TextBlock^ NumCutSheets;
+        private: ::Windows::UI::Xaml::Controls::TextBlock^ textBlock_Copy;
+        private: ::Windows::UI::Xaml::Controls::TextBlock^ textBlock_Copy1;
+        private: ::Windows::UI::Xaml::Controls::CalendarView^ MyCalendarPicker;
     };
 }
 

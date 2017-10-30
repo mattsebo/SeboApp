@@ -21,11 +21,16 @@ namespace SeboApp
 	private:
 		Platform::String^ CS40token;
 		Platform::String^ CS45token;
+		Platform::String^ timeLogToken;
+		Platform::String^ requestedDate;
+		int numSheetsCutOnDate;
 		MachineCutLog^ CS40;
 		MachineCutLog^ CS45;
 		std::vector<std::wstring> ConfigSettings;
 		void InitConfig();
 		void InitMachineLogs();
+		void ReadTimeLog();
+		void CountDatesFromFile(Platform::String^ file);
 		void ExplodeFile(Platform::String^ file);
 		void RemoveBatchFromString(std::wstring& s);
 		bool Contains(Platform::String^ s, Platform::Collections::Vector<String^>^ vec);
@@ -38,5 +43,8 @@ namespace SeboApp
 		void AutoSuggestBox_TextChanged(Windows::UI::Xaml::Controls::AutoSuggestBox^ sender, Windows::UI::Xaml::Controls::AutoSuggestBoxTextChangedEventArgs^ args);
 		void AutoSuggestBox_QuerySubmitted(Windows::UI::Xaml::Controls::AutoSuggestBox^ sender, Windows::UI::Xaml::Controls::AutoSuggestBoxQuerySubmittedEventArgs^ args);
 		void AutoSuggestBox_SuggestionChosen(Windows::UI::Xaml::Controls::AutoSuggestBox^ sender, Windows::UI::Xaml::Controls::AutoSuggestBoxSuggestionChosenEventArgs^ args);
+		void SetTimeLog_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
+		void MyCalendarPicker_SelectedDatesChanged(Windows::UI::Xaml::Controls::CalendarView^ sender, Windows::UI::Xaml::Controls::CalendarViewSelectedDatesChangedEventArgs^ args);
+		void MyCalendarPicker_Loaded(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
 	};
 }

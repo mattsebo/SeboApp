@@ -26,6 +26,7 @@ using namespace Windows::Storage::Pickers;
 using namespace Windows::Storage::AccessCache;
 using namespace Windows::System::Threading;
 using namespace Windows::Storage::Search;
+using namespace Windows::Globalization::DateTimeFormatting;
 using namespace concurrency;
 using namespace std;
 
@@ -34,13 +35,15 @@ using namespace std;
 
 MainPage::MainPage()
 	:
-	CS40token(""),
-	CS45token("")
+	CS40token(L""),
+	CS45token(L""),
+	timeLogToken(L""),
+	requestedDate(L""),
+	numSheetsCutOnDate(0)
 {
 	InitializeComponent();
 	InitConfig();
 }
-
 
 void SeboApp::MainPage::InitConfig()
 {
@@ -66,6 +69,10 @@ void SeboApp::MainPage::InitConfig()
 			{
 				CS45Path->Visibility = Windows::UI::Xaml::Visibility::Visible;
 			}
+			if (timeLogToken->IsEmpty())
+			{
+				SetTimeLog->Visibility = Windows::UI::Xaml::Visibility::Visible;
+			}
 		});
 	}).then([this, storageFolder](task<void> t)
 	{
@@ -84,6 +91,7 @@ void SeboApp::MainPage::InitConfig()
 				concurrency::create_task(storageFolder->CreateFileAsync("config.txt", CreationCollisionOption::GenerateUniqueName));
 				CS40Path->Visibility = Windows::UI::Xaml::Visibility::Visible;
 				CS45Path->Visibility = Windows::UI::Xaml::Visibility::Visible;
+				SetTimeLog->Visibility = Windows::UI::Xaml::Visibility::Visible;
 			}
 			catch (COMException ^ex)
 			{
@@ -98,79 +106,6 @@ void SeboApp::MainPage::InitMachineLogs()
 	CS40 = ref new MachineCutLog(searchTextBox->Text);
 	CS45 = ref new MachineCutLog(searchTextBox->Text);
 
-	/*StorageFolder^ picturesFolder = KnownFolders::PicturesLibrary;
-
-	StorageFolderQueryResult^ queryResult =
-		picturesFolder->CreateFolderQuery(CommonFolderQuery::GroupByMonth);
-
-	// Use shared_ptr so that outputString remains in memory
-	// until the task completes, which is after the function goes out of scope.
-	auto outputString = std::make_shared<wstring>();
-
-	create_task(queryResult->GetFoldersAsync()).then([this, outputString](IVectorView<StorageFolder^>^ view)
-	{
-		for (unsigned int i = 0; i < view->Size; i++)
-		{
-			create_task(view->GetAt(i)->GetFilesAsync()).then([this, i, view, outputString](IVectorView<StorageFile^>^ files)
-			{
-				*outputString += view->GetAt(i)->Name->Data();
-				*outputString += L"(";
-				*outputString += to_wstring(files->Size);
-				*outputString += L")\r\n";
-				for (unsigned int j = 0; j < files->Size; j++)
-				{
-					*outputString += L"     ";
-					*outputString += files->GetAt(j)->Name->Data();
-					*outputString += L"\r\n";
-				}
-			}).then([this, outputString]()
-			{
-				resultTextBox->Text = ref new String((*outputString).c_str());
-			});
-		}
-	});*/
-
-	/*// Be sure to specify the Pictures Folder capability in the appxmanifext file.
-	StorageFolder^ picturesFolder = KnownFolders::PicturesLibrary;
-
-	// Use a shared_ptr so that the string stays in memory
-	// until the last task is complete.
-	auto outputString = make_shared<wstring>();
-	*outputString += L"Files:\n";
-
-	// Get a read-only vector of the file objects
-	// and pass it to the continuation.
-	create_task(picturesFolder->GetFilesAsync())
-		// outputString is captured by value, which creates a copy
-		// of the shared_ptr and increments its reference count.
-		.then([outputString](IVectorView<StorageFile^>^ files)
-	{
-		for (unsigned int i = 0; i < files->Size; i++)
-		{
-			*outputString += files->GetAt(i)->Name->Data();
-			*outputString += L"\n";
-		}
-	})
-		// We need to explicitly state the return type
-		// here: -> IAsyncOperation<...>
-		.then([picturesFolder]()->IAsyncOperation<IVectorView<StorageFolder^>^>^
-	{
-		return picturesFolder->GetFoldersAsync();
-	})
-		// Capture "this" to access m_OutputTextBlock from within the lambda.
-		.then([this, outputString](IVectorView<StorageFolder^>^ folders)
-	{
-		*outputString += L"Folders:\n";
-
-		for (unsigned int i = 0; i < folders->Size; i++)
-		{
-			*outputString += folders->GetAt(i)->Name->Data();
-			*outputString += L"\n";
-		}
-
-		// Assume m_OutputTextBlock is a TextBlock defined in the XAML.
-		resultTextBox->Text = ref new String((*outputString).c_str());
-	});*/
 	try
 	{
 		if (StorageApplicationPermissions::FutureAccessList->ContainsItem(CS40token))
@@ -277,6 +212,74 @@ void SeboApp::MainPage::InitMachineLogs()
 	}
 }
 
+void SeboApp::MainPage::ReadTimeLog()
+{
+	numSheetsCutOnDate = 0;
+	try
+	{
+		if (StorageApplicationPermissions::FutureAccessList->ContainsItem(timeLogToken))
+		{
+			create_task(StorageApplicationPermissions::FutureAccessList->GetFolderAsync(timeLogToken))
+				.then([=](StorageFolder^ folder)
+			{ // Task to query base path
+				create_task(folder->GetFilesAsync()).then([=](IVectorView<StorageFile^>^ files)
+				{
+					// check each file within the subfolder
+					for (auto file : files)
+					{
+						create_task(FileIO::ReadTextAsync(file)).then([this, file](task<String^> task)
+						{
+							try
+							{
+								String^ fileContent = task.get();
+								CountDatesFromFile(fileContent);
+							}
+							catch (COMException^ ex)
+							{
+								
+							}
+						}).then([=](void)
+						{
+							NumCutSheets->Text = numSheetsCutOnDate.ToString();
+						});
+					}
+				});
+			});
+		}
+		else
+		{
+			resultTextBox->Text += L"CS40 Path not found!\n";
+		}
+	}
+	catch (const exception& e)
+	{
+
+	}
+}
+
+void SeboApp::MainPage::CountDatesFromFile(Platform::String^ file)
+{
+	std::wstring stdFile = file->Begin();
+	for (int i = 0; i < file->Length() - requestedDate->Length() + 4; ++i)
+	{
+		std::wstring s = stdFile.substr(i, requestedDate->Length() - 4).c_str();
+		std::wstring date = requestedDate->Begin();
+		std::wstring dt;
+		for (int j = 0; j < requestedDate->Length(); ++j)
+		{
+			if (date.at(j) < 200)
+			{
+				dt += date.at(j);
+			}
+		}
+		int compare = s.compare(dt);
+		if (compare == 0)
+		{
+			numSheetsCutOnDate++;
+		}
+	}
+}
+
 void SeboApp::MainPage::ExplodeFile(Platform::String^ file)
 {
 	// Separates the contents of the config file by line.
@@ -344,14 +347,22 @@ void SeboApp::MainPage::ProcessConfigString(Platform::String ^ file)
 		{
 			CS45token = ref new Platform::String((it->substr(11, it->length() - 1)).c_str());
 		}
+		else if (it->substr(0, 14) == L"Timelog Key = ")
+		{
+			timeLogToken = ref new Platform::String((it->substr(14, it->length() - 1)).c_str());
+		}
 	}
-	if (CS40token == "")
+	if (CS40token == L"")
 	{
 		CS40Path->Visibility = Windows::UI::Xaml::Visibility::Visible;
 	}
-	if (CS45token == "")
+	if (CS45token == L"")
 	{
 		CS45Path->Visibility = Windows::UI::Xaml::Visibility::Visible;
+	}
+	if (timeLogToken == L"")
+	{
+		SetTimeLog->Visibility = Windows::UI::Xaml::Visibility::Visible;
 	}
 }
 
@@ -365,6 +376,9 @@ void SeboApp::MainPage::SerializeConfig()
 		create_task(FileIO::WriteTextAsync(sampleFile, "CS40 Key = " + CS40token + "\r\n"))
 			.then([sampleFile, this](void) {
 			create_task(FileIO::AppendTextAsync(sampleFile, "CS45 Key = " + CS45token + "\r\n"));
+		})
+			.then([sampleFile, this](void) {
+			create_task(FileIO::AppendTextAsync(sampleFile, "Timelog Key = " + timeLogToken + "\r\n"));
 		});
 	});
 }
@@ -383,9 +397,8 @@ void SeboApp::MainPage::DoOnSearchEvent()
 
 void SeboApp::MainPage::Page_Loaded(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
-	/*TimeSpan period;
-	period.Duration = 4 * 10000000;
-
+	TimeSpan period;
+	period.Duration = 5 * 60 * 10000000; // every 5 minutes, update
 	try
 	{
 		ThreadPoolTimer^ PeriodicTimer = ThreadPoolTimer::CreatePeriodicTimer(
@@ -396,10 +409,9 @@ void SeboApp::MainPage::Page_Loaded(Platform::Object^ sender, Windows::UI::Xaml:
 				ref new Windows::UI::Core::DispatchedHandler([this]()
 			{
 				// Access UI elements
-				if (CS40 != nullptr && CS45 != nullptr)
+				if (timeLogToken != nullptr)
 				{
-					CS40->UpdateTextBox(resultTextBox, CS45);
-					CS40->UpdateProgressBar(progressBar, CS45);
+					ReadTimeLog();
 				}
 			}));
 		}), period);
@@ -407,7 +419,7 @@ void SeboApp::MainPage::Page_Loaded(Platform::Object^ sender, Windows::UI::Xaml:
 	catch (const exception& e)
 	{
 
-	}*/
+	}
 }
 
 void SeboApp::MainPage::CS40Path_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
@@ -590,13 +602,70 @@ void SeboApp::MainPage::AutoSuggestBox_TextChanged(Windows::UI::Xaml::Controls::
 void SeboApp::MainPage::AutoSuggestBox_QuerySubmitted(Windows::UI::Xaml::Controls::AutoSuggestBox^ sender, Windows::UI::Xaml::Controls::AutoSuggestBoxQuerySubmittedEventArgs^ args)
 {
 	searchTextBox->Text = args->ChosenSuggestion->ToString();
-	//searchTextBox->Text = sender->Text;
 	DoOnSearchEvent();
 }
 
 void SeboApp::MainPage::AutoSuggestBox_SuggestionChosen(Windows::UI::Xaml::Controls::AutoSuggestBox^ sender, Windows::UI::Xaml::Controls::AutoSuggestBoxSuggestionChosenEventArgs^ args)
 {
 	searchTextBox->Text = args->SelectedItem->ToString();
-	//searchTextBox->Text = sender->Text;
 	DoOnSearchEvent();
+}
+
+void SeboApp::MainPage::SetTimeLog_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
+{
+	FolderPicker^ picker = ref new FolderPicker();
+	picker->FileTypeFilter->Append("*");
+	picker->ViewMode = PickerViewMode::List;
+	picker->SuggestedStartLocation = PickerLocationId::ComputerFolder;
+	create_task(picker->PickSingleFolderAsync()).then([=](StorageFolder^ folder)
+	{
+		if (folder != nullptr)
+		{
+			// Query the folder.
+			try
+			{
+				timeLogToken = StorageApplicationPermissions::FutureAccessList->Add(folder);
+				SerializeConfig();
+			}
+			catch (COMException^ ex)
+			{
+				if (ex->HResult == FA_E_MAX_PERSISTED_ITEMS_REACHED)
+				{
+					// A real program would call Remove() to create room in the FAL.
+					timeLogToken = "The folder '" + folder->Name + "' was not added to the FAL list because the FAL list is full.";
+				}
+				else
+				{
+					throw;
+				}
+			}
+		}
+	});
+	SetTimeLog->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
+}
+
+
+void SeboApp::MainPage::MyCalendarPicker_SelectedDatesChanged(Windows::UI::Xaml::Controls::CalendarView^ sender, Windows::UI::Xaml::Controls::CalendarViewSelectedDatesChangedEventArgs^ args)
+{
+	DateTimeFormatter^ dateFormatter = ref new DateTimeFormatter(L"‎‎{month.integer(2)}/{day.integer(2)}/‎‎{year.abbreviated}");
+	Windows::Foundation::DateTime dateToFormat = Windows::Foundation::DateTime(args->AddedDates->First()->Current);
+	requestedDate = dateFormatter->Format(dateToFormat);
+	if (timeLogToken != nullptr)
+	{
+		ReadTimeLog();
+	}
+}
+
+
+void SeboApp::MainPage::MyCalendarPicker_Loaded(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
+{
+	Windows::Globalization::Calendar^ c = ref new Windows::Globalization::Calendar;
+	c->SetToNow();
+	DateTimeFormatter^ dateFormatter = ref new DateTimeFormatter(L"‎‎{month.integer(2)}/{day.integer(2)}/‎‎{year.abbreviated}");
+	DateTime dateToFormat = c->GetDateTime();
+	requestedDate = dateFormatter->Format(dateToFormat);
+	if (timeLogToken != nullptr)
+	{
+		ReadTimeLog();
+	}
 }
