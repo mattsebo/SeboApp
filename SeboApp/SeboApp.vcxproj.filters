@@ -33,6 +33,9 @@
     <ClInclude Include="MachineCutLog.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="WorkOrder.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\LockScreenLogo.scale-200.png">

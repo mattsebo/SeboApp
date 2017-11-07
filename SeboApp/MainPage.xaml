@@ -19,7 +19,7 @@
         <Button x:Name="CS40Path" Visibility="Collapsed" Content="Set Path to CS40" HorizontalAlignment="Left" Margin="55,24,0,0" VerticalAlignment="Top" Click="CS40Path_Click"/>
         <Button x:Name="CS45Path" Visibility="Collapsed" Content="Set Path to CS45" HorizontalAlignment="Left" Margin="198,24,0,0" VerticalAlignment="Top" Click="CS45Path_Click"/>
         <Button x:Name="SetTimeLog" Visibility="Collapsed" Content="Set Path to Time Log" HorizontalAlignment="Left" Margin="350,24,0,0" VerticalAlignment="Top" Click="SetTimeLog_Click"/>
-        <AutoSuggestBox x:Name="searchTextBox" HorizontalAlignment="Left" Margin="55,86,0,0" VerticalAlignment="Top" Width="190" QueryIcon="Find" PlaceholderText="Search" TextChanged="AutoSuggestBox_TextChanged" QuerySubmitted="AutoSuggestBox_QuerySubmitted" SuggestionChosen="AutoSuggestBox_SuggestionChosen"/>
+        <AutoSuggestBox x:Name="searchTextBox" HorizontalAlignment="Left" Margin="55,86,0,0" IsEnabled="False" VerticalAlignment="Top" Width="190" QueryIcon="Find" PlaceholderText="Search" TextChanged="AutoSuggestBox_TextChanged" QuerySubmitted="AutoSuggestBox_QuerySubmitted" SuggestionChosen="AutoSuggestBox_SuggestionChosen"/>
         <TextBlock x:Name="NumCutSheets" HorizontalAlignment="Left" FontSize="80" TextAlignment="Center" Margin="472,438,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Height="91" Width="190"/>
         <TextBlock x:Name="textBlock_Copy" HorizontalAlignment="Left" Margin="55,154,0,0" TextWrapping="Wrap" Text="Sheets left to cut:" VerticalAlignment="Top" Width="167"/>
         <TextBlock x:Name="textBlock_Copy1" HorizontalAlignment="Left" Margin="472,413,0,0" TextWrapping="Wrap" Text="# of sheets cut on this date:" VerticalAlignment="Top" Width="190"/>

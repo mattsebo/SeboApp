@@ -11,15 +11,22 @@ public:
 		filename(filename),
 		batch(batch),
 		isCut(isCut)
+	{}
+	Sheet(Platform::String^ rawFilename)
 	{
-
+		std::wstring rawFile = rawFilename->Begin();
+		if (rawFile.substr(0, 3) == L"CUT")
+		{
+			isCut = true;
+			rawFile = rawFile.substr(3, rawFile.length());
+		}
+		else
+		{
+			isCut = false;
+		}
+		batch = ref new Platform::String(rawFile.substr(0, rawFile.length() - 4).c_str());
+		filename = ref new Platform::String(rawFile.c_str());
 	}
-	/*Sheet()
-		:
-		filename(L""),
-		batch(L""),
-		isCut(false)
-	{}*/
 	Platform::String^ GetFilename()
 	{
 		return filename;

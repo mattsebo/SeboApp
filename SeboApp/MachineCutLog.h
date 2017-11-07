@@ -1,172 +1,182 @@
 #pragma once
 #include <map>
-#include "Sheet.h"
 #include <collection.h>
-
+#include "WorkOrder.h"
 
 using namespace std;
 using namespace Platform;
 using namespace Platform::Collections;
+using namespace Windows::Storage::AccessCache;
 
 ref class MachineCutLog sealed
 {
 public:
-	MachineCutLog(Platform::String^ workOrder)
+	MachineCutLog(Platform::String^ FALtoken)
 		:
-		workOrder(workOrder)
-	{
-		workOrder->Concat(workOrder->ToString(), L"_");
-	}
-	void EchoSheets()
+		workOrders(ref new Map<String^, WorkOrder^>()),
+		workOrdersShort(ref new Map<String^, Windows::Foundation::Collections::IVector<String^>^>()),
+		FALtoken(FALtoken)
 	{}
-	void AddSheet(Platform::String^ s)
+	void Init(Windows::UI::Xaml::Controls::TextBox^ textbox, Windows::UI::Xaml::Controls::AutoSuggestBox^ searchbox
+		, Windows::UI::Core::CoreDispatcher^ dispatcher)
 	{
-		wstring filename = s->Begin();
-		if (filename.substr(filename.length() - 4), filename.length())
+		workOrders = ref new Map<String^, WorkOrder^>();
+		workOrdersShort = ref new Map<String^, Windows::Foundation::Collections::IVector<String^>^>();
+		try
 		{
-			filename = filename.substr(0, filename.length() - 4);
-		}
-		try {
-			stoi(filename.substr(filename.length() - 4, 4), nullptr, 10); // convert last 4 characters to int, if it's int it's a full sheet.
-			wstring batch = filename.substr(0, filename.length() - 4);
-			bool sheetCut = false;
-			if (batch.substr(0, 3) == L"CUT")
+			if (StorageApplicationPermissions::FutureAccessList->ContainsItem(FALtoken))
 			{
-				sheetCut = true;
-				batch = batch.substr(3, batch.length());
-				filename = filename.substr(3, filename.length() - 3);
-			}
-			String^ sFilename = ref new String(filename.c_str());
-			String^ sBatch = ref new String(batch.c_str());
-			Sheet^ sheet = ref new Sheet(sFilename, sBatch, sheetCut);
-			sheets->Insert(sFilename, sheet);
-		}
-		catch (const std::invalid_argument& ia) {}
-	}
-	int GetPercentageCut(MachineCutLog^ othermachine)
-	{
-		int numSheets = sheets->Size;
-		int numCutSheets = 0;
-		if (sheets->Size == 0)
-		{
-			numSheets = othermachine->GetSheets()->Size;
-			for (auto pair : othermachine->GetSheets())
-			{
-				auto key = pair->Key;
-				auto value = pair->Value;
-				if (othermachine->GetSheets()->Lookup(key)->GetIsCut())
-				{
-					numCutSheets++;
-				}
-			}
-		}
-		else if (othermachine->GetSheets()->Size == 0)
-		{
-			numSheets = sheets->Size;
-			for (auto pair : sheets)
-			{
-				auto key = pair->Key;
-				auto value = pair->Value;
-				if (sheets->Lookup(key)->GetIsCut())
-				{
-					numCutSheets++;
-				}
-			}
-		}
-		else
-		{
-			for (auto pair : sheets)
-			{
-				auto key = pair->Key;
-				auto value = pair->Value;
-				if (value->GetIsCut() || othermachine->GetSheets()->Lookup(key)->GetIsCut())
-				{
-					numCutSheets++;
-				}
+				create_task(StorageApplicationPermissions::FutureAccessList->GetFolderAsync(FALtoken))
+					.then([=](StorageFolder^ folder)
+				{ // Task to query base path
+					if (folder != nullptr)
+					{
+						// Query the folder.
+						auto query2 = folder->CreateFolderQuery();
+						create_task(query2->GetFoldersAsync()).then([=](IVectorView<StorageFolder^>^ subfolders)
+						{
+							// Query the subfolders.
+							for (auto subfolder : subfolders)
+							{
+								dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::High,
+									ref new Windows::UI::Core::DispatchedHandler([textbox, searchbox]()
+								{
+									textbox->Text = L"Loading...";
+									searchbox->IsEnabled = false;
+								}));
+								auto query = subfolder->CreateFileQuery();
+								String^ name = subfolder->Name;
+								WorkOrder^ workOrder = ref new WorkOrder(name, query, textbox);
+								workOrders->Insert(name, workOrder);
+								String^ shortName = ref new String(name->Begin());
+								RemoveBatchFromString(shortName);
+								if (!workOrdersShort->HasKey(shortName))
+								{
+									workOrdersShort->Insert(shortName, ref new Vector<String^>(1,name));
+								} 
+								else
+								{
+									workOrdersShort->Lookup(shortName)->Append(name);
+								}
+							}
+						}).then([=](void)
+						{
+							dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal,
+								ref new Windows::UI::Core::DispatchedHandler([this, textbox, searchbox]()
+							{
+								textbox->Text = L"Ready to search!";
+								searchbox->IsEnabled = true;
+							}));
+						});
+					}
+				});
 			}
 		}
-		int result = int((float(numCutSheets) / float(numSheets)) * 100.0f);
-		return result;
-	}
-	Platform::String^ GetWorkOrder()
-	{
-		return workOrder;
-	}
-	void EchoSheetsToCut(Windows::UI::Xaml::Controls::TextBox^ textbox, MachineCutLog^ othermachine)
-	{
-		if (sheets->Size == 0)
+		catch (const COMException^ e)
 		{
-			for (auto pair : othermachine->GetSheets())
-			{
-				auto key = pair->Key;
-				auto value = pair->Value;
-				bool m1 = value->GetIsCut();
-				if (!m1)
-				{
-					textbox->Text += value->GetFilename() + L"\n";
-				}
-			}
-		}
-		else if (othermachine->GetSheets()->Size == 0)
-		{
-			for (auto pair : sheets)
-			{
-				auto key = pair->Key;
-				auto value = pair->Value;
-				bool m1 = value->GetIsCut();
-				if (!m1)
-				{
-					textbox->Text += value->GetFilename() + L"\n";
-				}
-			}
-		}
-		else
-		{
-			for (auto pair : sheets)
-			{
-				auto key = pair->Key;
-				auto value = pair->Value;
-				bool m1 = value->GetIsCut();
-				bool m2 = othermachine->GetSheets()->Lookup(key)->GetIsCut();
-				if (!m1 && !m2)
-				{
-					textbox->Text += value->GetFilename() + L"\n";
-				}
-			}
+
 		}
 	}
-	void UpdateTextBox(Windows::UI::Xaml::Controls::TextBox^ textbox, MachineCutLog^ othermachine)
+
+	void InitSheets(Platform::String^ search, MachineCutLog^ othermachine)
 	{
-		if (workOrder->IsEmpty())
+		for (auto it : workOrdersShort->Lookup(search))
 		{
-			textbox->Text = L"Cannot find that job, try again.";
+			workOrders->Lookup(it)->Init(GetBatchFromString(it));
 		}
-		else
+		for (auto it : othermachine->GetWorkOrdersShort()->Lookup(search))
 		{
-			textbox->Text = L"Job " + workOrder + L" is ";
-			textbox->Text += GetPercentageCut(othermachine) + L"% cut.\n\n";
-			textbox->Text += L"Sheets left to be cut:\n";
-			EchoSheetsToCut(textbox, othermachine);
+			othermachine->GetWorkOrders()->Lookup(it)->Init(GetBatchFromString(it));
 		}
 	}
-	void UpdateProgressBar(Windows::UI::Xaml::Controls::ProgressBar^ progressBar, MachineCutLog^ othermachine)
+	bool KeyExists(Platform::String^ search)
 	{
-		if ((sheets->Size == 0 && othermachine->GetSheets()->Size == 0)
-			|| workOrder->IsEmpty())
+		return workOrdersShort->HasKey(search);
+	}
+	void EchoSheetsToCut(Windows::UI::Xaml::Controls::TextBox^ textbox,Platform::String^ search, Windows::UI::Xaml::Controls::ProgressBar^ progressbar, MachineCutLog^ othermachine)
+	{
+		textbox->Text = L"";
+		int numSheets = 0;
+		int numSheetsCut = 0;
+		for (auto workorder : workOrdersShort->Lookup(search)) // iterate through vector of string keys for full workorder names
 		{
-			progressBar->Value = 0;
+			if (workOrders->HasKey(workorder) && othermachine->GetWorkOrders()->HasKey(workorder)) // scenario where both machines has current workorder.
+			{
+				for (auto sheet : workOrders->Lookup(workorder)->GetSheets())
+				{
+					numSheets++;
+					auto otherMachineSheet = othermachine->GetWorkOrders()->Lookup(workorder)->GetSheets()->Lookup(sheet->Key);
+					if (sheet->Value->GetIsCut() || otherMachineSheet->GetIsCut())
+					{
+						numSheetsCut++;
+					}
+					else
+					{
+						textbox->Text += sheet->Key + L"\n";
+					}
+				}
+			}
+			// TO DO: Implement scenario where only main machine has key found.
 		}
-		else
+		int result = int((float(numSheetsCut) / float(numSheets)) * 100.0f);
+		progressbar->Value = result;
+		textbox->Text = L"Job " + search + L" is " + result.ToString() + L"% cut.\nSheets left to cut:\n" + textbox->Text;
+	}
+	void EchoDebug(Platform::String^ search, Windows::UI::Xaml::Controls::TextBox^ textbox, MachineCutLog^ othermachine)
+	{
+		textbox->Text = L"";
+		for (auto it : workOrdersShort->Lookup(search))
 		{
-			progressBar->Value = GetPercentageCut(othermachine);
+			//workOrders->Lookup(it)->Init(GetBatchFromString(it));
+			for (auto sheet : workOrders->Lookup(it)->GetSheets())
+			{
+				textbox->Text += sheet->Key + L"/" + sheet->Value->GetIsCut() + L"\n";
+			}
+			//textbox->Text += it + L" Size: " + L"\n";
+		}
+		for (auto it : othermachine->GetWorkOrdersShort()->Lookup(search))
+		{
+			for (auto sheet : othermachine->GetWorkOrders()->Lookup(it)->GetSheets())
+			{
+				textbox->Text += sheet->Key + L"/" + sheet->Value->GetIsCut() + L"\n";
+			}
+			//textbox->Text += it + L"\n";
 		}
 	}
-	Windows::Foundation::Collections::IMap<String^, Sheet^>^ GetSheets()
+	Windows::Foundation::Collections::IMap<String^, WorkOrder^>^ GetWorkOrders()
 	{
-		return sheets;
+		return workOrders;
+	}
+	Windows::Foundation::Collections::IMap<String^, Windows::Foundation::Collections::IVector<String^>^>^ GetWorkOrdersShort()
+	{
+		return workOrdersShort;
 	}
 private:
-	Platform::String^ workOrder;
+	Platform::String^ GetBatchFromString(Platform::String^ s)
+	{
+		std::wstring name = s->Begin();
+		for (int i = name.length(); i > 0; i--)
+		{
+			if (name[i] == L'_')
+			{
+				return ref new Platform::String(name.substr(i + 1, name.length()).c_str());
+			}
+		}
+	}
+	void RemoveBatchFromString(Platform::String^& name)
+	{
+		std::wstring s = name->Begin();
+		for (int i = s.length(); i > 0; i--)
+		{
+			if (s[i] == L'_')
+			{
+				name = ref new Platform::String(s.substr(0, i).c_str());
+				break;
+			}
+		}
+	}
 private:
-	Map<String^, Sheet^>^ sheets = ref new Map<String^, Sheet^>();
+	Map<String^, WorkOrder^>^ workOrders;
+	Map<String^, Windows::Foundation::Collections::IVector<String^>^>^ workOrdersShort;
+	String^ FALtoken;
 };

@@ -84,7 +84,6 @@ void SeboApp::MainPage::InitConfig()
 		}
 		catch (Platform::COMException^ e)
 		{
-			//Example output: The system cannot find the specified file.
 			// CREATE config.txt in localfolder.
 			try
 			{
@@ -101,115 +100,23 @@ void SeboApp::MainPage::InitConfig()
 	});
 }
 
-void SeboApp::MainPage::InitMachineLogs()
+void SeboApp::MainPage::InitMachineLogs(Windows::UI::Xaml::Controls::TextBox^ textbox, Windows::UI::Xaml::Controls::AutoSuggestBox^ searchbox)
 {
-	CS40 = ref new MachineCutLog(searchTextBox->Text);
-	CS45 = ref new MachineCutLog(searchTextBox->Text);
-
-	try
-	{
-		if (StorageApplicationPermissions::FutureAccessList->ContainsItem(CS40token))
+	CS40 = ref new MachineCutLog(CS40token);
+	CS45 = ref new MachineCutLog(CS45token);
+	create_task([this,searchbox, textbox](void){
+		if (!CS45token->IsEmpty())
 		{
-			create_task(StorageApplicationPermissions::FutureAccessList->GetFolderAsync(CS40token))
-				.then([=](StorageFolder^ folder)
-			{ // Task to query base path
-				if (folder != nullptr)
-				{
-					// Query the folder.
-					auto query2 = folder->CreateFolderQuery();
-					create_task(query2->GetFoldersAsync()).then([=](IVectorView<StorageFolder^>^ subfolders)
-					{
-						// Query the subfolders.
-						for (auto subfolder : subfolders)
-						{
-							auto query = subfolder->CreateFileQuery();
-							wstring name = subfolder->Name->Begin();
-							if (CS40->GetWorkOrder()->Begin() == name.substr(0, CS40->GetWorkOrder()->Length()))
-							{
-								create_task(query->GetFilesAsync()).then([=](IVectorView<StorageFile^>^ files)
-								{
-									// check each file within the subfolder
-									for (auto file : files)
-									{
-										//String^ s = ref new String(file->Name->Begin());
-										CS40->AddSheet(file->Name);
-									}
-								})
-									.then([=](void)
-								{
-									if (CS40 != nullptr && CS45 != nullptr)
-									{
-										CS40->UpdateTextBox(resultTextBox, CS45);
-										CS40->UpdateProgressBar(progressBar, CS45);
-									}
-								});
-							}
-						}
-					});
-				}
-			});
+			CS45->Init(textbox, searchbox, this->Dispatcher);
 		}
-		else
-		{
-			resultTextBox->Text += L"CS40 Path not found!\n";
-		}
-	}
-	catch (const exception& e)
-	{
-		
-	}
-	try
-	{
-		if (StorageApplicationPermissions::FutureAccessList->ContainsItem(CS45token))
-		{
-			create_task(StorageApplicationPermissions::FutureAccessList->GetFolderAsync(CS45token))
-				.then([=](StorageFolder^ folder)
-			{ // Task to query base path
-				if (folder != nullptr)
-				{
-					// Query the folder.
-					auto query2 = folder->CreateFolderQuery();
-					create_task(query2->GetFoldersAsync()).then([=](IVectorView<StorageFolder^>^ subfolders)
-					{
-						// Query the subfolders.
-						for (auto subfolder : subfolders)
-						{
-							auto query = subfolder->CreateFileQuery();
-							wstring name = subfolder->Name->Begin();
-							if (CS45->GetWorkOrder()->Begin() == name.substr(0, CS45->GetWorkOrder()->Length()))
-							{
-								create_task(query->GetFilesAsync()).then([=](IVectorView<StorageFile^>^ files)
-								{
-									// check each file within the subfolder
-									for (auto file : files)
-									{
-										String^ s = ref new String(file->Name->Begin());
-										CS45->AddSheet(file->Name);
-									}
-								})
-									.then([=](void)
-								{
-									if (CS40 != nullptr && CS45 != nullptr)
-									{
-										CS40->UpdateTextBox(resultTextBox, CS45);
-										CS40->UpdateProgressBar(progressBar, CS45);
-									}
-								});
-							}
-						}
-					});
-				}
-			});
-		}
-		else
-		{
-			resultTextBox->Text += L"CS45 Path not found!\n";
-		}
-	}
-	catch (const exception& e)
-	{
-		
-	}
+	}).then([this, searchbox, textbox](void) {
+		create_task([this, searchbox, textbox](void) {
+			if (!CS40token->IsEmpty())
+			{
+				CS40->Init(textbox, searchbox, this->Dispatcher);
+			}
+		});
+	});
 }
 
 void SeboApp::MainPage::ReadTimeLog()
@@ -292,7 +199,7 @@ void SeboApp::MainPage::ExplodeFile(Platform::String^ file)
 		{
 			delimiter += (*(it + i)).ToString();
 		}
-		if (delimiter == "\r\n")
+		if (delimiter == L"\r\n")
 		{
 			ConfigSettings.push_back(line);
 			line = L"";
@@ -307,30 +214,6 @@ void SeboApp::MainPage::ExplodeFile(Platform::String^ file)
 			ConfigSettings.push_back(line);
 		}
 	}
-}
-
-void SeboApp::MainPage::RemoveBatchFromString(std::wstring & s)
-{
-	for (int i = s.length(); i > 0; i--)
-	{
-		if (s[i] == L'_')
-		{
-			s = s.substr(0, i);
-			break;
-		}
-	}
-}
-
-bool SeboApp::MainPage::Contains(Platform::String ^ s, Platform::Collections::Vector<String^>^ vec)
-{
-	for (auto it : vec)
-	{
-		if (it == s)
-		{
-			return true;
-		}
-	}
-	return false;
 }
 
 void SeboApp::MainPage::ProcessConfigString(Platform::String ^ file)
@@ -383,25 +266,49 @@ void SeboApp::MainPage::SerializeConfig()
 	});
 }
 
-void SeboApp::MainPage::DoOnSearchEvent()
+void SeboApp::MainPage::DoOnSearchEvent(Platform::String^ search, Windows::UI::Xaml::Controls::TextBox^ textbox)
 {
 	if (CS40token == L"" || CS45token == L"")
 	{
 		resultTextBox->Text = L"Cannot find machine path.";
 	}
+	else if (!CS45->KeyExists(search))
+	{
+		resultTextBox->Text = L"Cannot find that job, try again.";
+	}
 	else
 	{
-		InitMachineLogs();
+		CS45->InitSheets(search, CS40);
+		TimeSpan period;
+		period.Duration = (1 * 10000000) /3; // 10 million tickss per second
+		try
+		{
+			ThreadPoolTimer^ PeriodicTimer = ThreadPoolTimer::CreateTimer(
+				ref new TimerElapsedHandler([this](ThreadPoolTimer^ source)
+			{
+				// Do stuff
+				Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::High,
+					ref new Windows::UI::Core::DispatchedHandler([this]()
+				{
+					// Access UI elements
+					CS45->EchoSheetsToCut(resultTextBox, searchTextBox->Text, progressBar, CS40);
+				}));
+			}), period);
+		}
+		catch (const exception& e)
+		{
+
+		}
 	}
 }
 
 void SeboApp::MainPage::Page_Loaded(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
 	TimeSpan period;
-	period.Duration = 5 * 60 * 10000000; // every 5 minutes, update
+	period.Duration = 1 * 10000000; // 10 million tickss per second
 	try
 	{
-		ThreadPoolTimer^ PeriodicTimer = ThreadPoolTimer::CreatePeriodicTimer(
+		ThreadPoolTimer^ PeriodicTimer = ThreadPoolTimer::CreateTimer(
 			ref new TimerElapsedHandler([this](ThreadPoolTimer^ source)
 		{
 			// Do stuff
@@ -409,10 +316,7 @@ void SeboApp::MainPage::Page_Loaded(Platform::Object^ sender, Windows::UI::Xaml:
 				ref new Windows::UI::Core::DispatchedHandler([this]()
 			{
 				// Access UI elements
-				if (timeLogToken != nullptr)
-				{
-					ReadTimeLog();
-				}
+				InitMachineLogs(resultTextBox, searchTextBox);
 			}));
 		}), period);
 	}
@@ -422,225 +326,104 @@ void SeboApp::MainPage::Page_Loaded(Platform::Object^ sender, Windows::UI::Xaml:
 	}
 }
 
+void SeboApp::MainPage::GetFilePickerToken(Platform::String^& token)
+{
+	this->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal,
+		ref new Windows::UI::Core::DispatchedHandler([&]()
+	{
+		FolderPicker^ picker = ref new FolderPicker();
+		picker->FileTypeFilter->Append("*");
+		picker->ViewMode = PickerViewMode::List;
+		picker->SuggestedStartLocation = PickerLocationId::ComputerFolder;
+		create_task(picker->PickSingleFolderAsync()).then([=, &token](StorageFolder^ folder)
+		{
+			if (folder != nullptr)
+			{
+				// Query the folder.
+				try
+				{
+					token = StorageApplicationPermissions::FutureAccessList->Add(folder);
+					SerializeConfig();
+				}
+				catch (COMException^ ex)
+				{
+					if (ex->HResult == FA_E_MAX_PERSISTED_ITEMS_REACHED)
+					{
+						// A real program would call Remove() to create room in the FAL.
+						token = "The folder '" + folder->Name + "' was not added to the FAL list because the FAL list is full.";
+					}
+					else
+					{
+						throw;
+					}
+				}
+			}
+		});
+	}));
+}
+
 void SeboApp::MainPage::CS40Path_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
-	FolderPicker^ picker = ref new FolderPicker();
-	picker->FileTypeFilter->Append("*");
-	picker->ViewMode = PickerViewMode::List;
-	picker->SuggestedStartLocation = PickerLocationId::ComputerFolder;
-	create_task(picker->PickSingleFolderAsync()).then([=](StorageFolder^ folder)
-	{
-		if (folder != nullptr)
-		{
-			// Query the folder.
-			try
-			{
-				CS40token = StorageApplicationPermissions::FutureAccessList->Add(folder);
-				SerializeConfig();
-			}
-			catch (COMException^ ex)
-			{
-				if (ex->HResult == FA_E_MAX_PERSISTED_ITEMS_REACHED)
-				{
-					// A real program would call Remove() to create room in the FAL.
-					CS40token = "The folder '" + folder->Name + "' was not added to the FAL list because the FAL list is full.";
-				}
-				else
-				{
-					throw;
-				}
-			}
-		}
-	});
+	GetFilePickerToken(CS40token);
 	CS40Path->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
 }
 
 void SeboApp::MainPage::CS45Path_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
-	FolderPicker^ picker = ref new FolderPicker();
-	picker->FileTypeFilter->Append("*");
-	picker->ViewMode = PickerViewMode::List;
-	picker->SuggestedStartLocation = PickerLocationId::ComputerFolder;
-	create_task(picker->PickSingleFolderAsync()).then([=](StorageFolder^ folder)
-	{
-		if (folder != nullptr)
-		{
-			// Query the folder.
-			try
-			{
-				CS45token = StorageApplicationPermissions::FutureAccessList->Add(folder);
-				SerializeConfig();
-			}
-			catch (COMException^ ex)
-			{
-				if (ex->HResult == FA_E_MAX_PERSISTED_ITEMS_REACHED)
-				{
-					// A real program would call Remove() to create room in the FAL.
-					CS45token = "The folder '" + folder->Name + "' was not added to the FAL list because the FAL list is full.";
-				}
-				else
-				{
-					throw;
-				}
-			}
-		}
-	});
+	GetFilePickerToken(CS45token);
 	CS45Path->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
 }
 
 void SeboApp::MainPage::AutoSuggestBox_TextChanged(Windows::UI::Xaml::Controls::AutoSuggestBox^ sender, Windows::UI::Xaml::Controls::AutoSuggestBoxTextChangedEventArgs^ args)
 {
+	Vector<String^>^ vec = ref new Vector<String^>();
+	for (auto it : CS45->GetWorkOrdersShort())
+	{
+		wstring name = it->Key->Begin();
+		if (sender->Text->Begin() == name.substr(0, sender->Text->Length()))
+		{
+			vec->Append(it->Key);
+		}
+	}
 	if (args->Reason == AutoSuggestionBoxTextChangeReason::UserInput)
 	{
-		Vector<String^>^ match = ref new Vector<String^>();
-		if (!CS45token->IsEmpty() && StorageApplicationPermissions::FutureAccessList->ContainsItem(CS45token))
-			{
-				create_task(StorageApplicationPermissions::FutureAccessList->GetFolderAsync(CS45token)).then([=](StorageFolder^ folder)
-				{ // Task to query base path
-					if (folder != nullptr)
-					{
-						// Query the folder.
-						auto query2 = folder->CreateFolderQuery();
-						create_task(query2->GetFoldersAsync()).then([=](IVectorView<StorageFolder^>^ subfolders)-> Vector<String^>^
-						 {
-							Vector<String^>^ vec = ref new Vector<String^>();
-							// Query the subfolders.
-							for (auto subfolder : subfolders)
-							{
-								wstring name = subfolder->Name->Begin();
-								RemoveBatchFromString(name);
-								if (sender->Text->Begin() == name.substr(0, sender->Text->Length()))
-								{
-									Platform::String^ s = ref new String(name.c_str());
-									if (!Contains(s, vec))
-									{
-										vec->Append(s);
-									}
-								}
-							}
-							return vec;
-						}).then([=](Vector<String^>^ newVec) {
-							//match->Clear();
-							for (auto it : newVec)
-							{
-								bool exists = false;
-								for (auto it2 : match)
-								{
-									if (it2 == it)
-									{
-										exists = true;
-									}
-								}
-								if (!exists)
-								{
-									match->Append(it);
-								}
-							}
-						});
-					}
-				});
-			}
-			else
-			{
-				resultTextBox->Text = L"Machine path not found!\n";
-			}
-		if (!CS40token->IsEmpty() && StorageApplicationPermissions::FutureAccessList->ContainsItem(CS40token))
+		if (vec->Size == 0)
 		{
-			create_task(StorageApplicationPermissions::FutureAccessList->GetFolderAsync(CS40token)).then([=](StorageFolder^ folder)
-			{ // Task to query base path
-				if (folder != nullptr)
-				{
-					// Query the folder.
-					auto query2 = folder->CreateFolderQuery();
-					create_task(query2->GetFoldersAsync()).then([=](IVectorView<StorageFolder^>^ subfolders)-> Vector<String^>^
-					{
-						Vector<String^>^ vec = ref new Vector<String^>();
-						// Query the subfolders.
-						for (auto subfolder : subfolders)
-						{
-							wstring name = subfolder->Name->Begin();
-							RemoveBatchFromString(name);
-							if (sender->Text->Begin() == name.substr(0, sender->Text->Length()))
-							{
-								Platform::String^ s = ref new String(name.c_str());
-								if (!Contains(s, vec))
-								{
-									vec->Append(s);
-								}
-							}
-						}
-						return vec;
-					}).then([=](Vector<String^>^ newVec) {
-						//match->Clear();
-						for (auto it : newVec)
-						{
-							bool exists = false;
-							for (auto it2 : match)
-							{
-								if (it2 == it)
-								{
-									exists = true; 
-								}
-							}
-							if (!exists)
-							{
-								match->Append(it);
-							}
-						}
-					});
-				}
-			});
+			vec->Append(L"No Results");
 		}
-		else
-		{
-			resultTextBox->Text = L"Machine path not found!\n";
-		}
-		sender->ItemsSource = match;
+		sender->ItemsSource = vec;
 	}
 }
 
 void SeboApp::MainPage::AutoSuggestBox_QuerySubmitted(Windows::UI::Xaml::Controls::AutoSuggestBox^ sender, Windows::UI::Xaml::Controls::AutoSuggestBoxQuerySubmittedEventArgs^ args)
 {
-	searchTextBox->Text = args->ChosenSuggestion->ToString();
-	DoOnSearchEvent();
+	if (args->QueryText == L"No Results")
+	{
+		searchTextBox->Text = L"";
+	}
+	else
+	{
+		searchTextBox->Text = args->QueryText;
+	}
+	DoOnSearchEvent(searchTextBox->Text, resultTextBox);
 }
 
 void SeboApp::MainPage::AutoSuggestBox_SuggestionChosen(Windows::UI::Xaml::Controls::AutoSuggestBox^ sender, Windows::UI::Xaml::Controls::AutoSuggestBoxSuggestionChosenEventArgs^ args)
 {
-	searchTextBox->Text = args->SelectedItem->ToString();
-	DoOnSearchEvent();
+	if (args->SelectedItem->ToString() == L"No Results")
+	{
+		searchTextBox->Text = L"";
+	}
+	else
+	{
+		searchTextBox->Text = args->SelectedItem->ToString();
+	}
+	DoOnSearchEvent(searchTextBox->Text, resultTextBox);
 }
 
 void SeboApp::MainPage::SetTimeLog_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
-	FolderPicker^ picker = ref new FolderPicker();
-	picker->FileTypeFilter->Append("*");
-	picker->ViewMode = PickerViewMode::List;
-	picker->SuggestedStartLocation = PickerLocationId::ComputerFolder;
-	create_task(picker->PickSingleFolderAsync()).then([=](StorageFolder^ folder)
-	{
-		if (folder != nullptr)
-		{
-			// Query the folder.
-			try
-			{
-				timeLogToken = StorageApplicationPermissions::FutureAccessList->Add(folder);
-				SerializeConfig();
-			}
-			catch (COMException^ ex)
-			{
-				if (ex->HResult == FA_E_MAX_PERSISTED_ITEMS_REACHED)
-				{
-					// A real program would call Remove() to create room in the FAL.
-					timeLogToken = "The folder '" + folder->Name + "' was not added to the FAL list because the FAL list is full.";
-				}
-				else
-				{
-					throw;
-				}
-			}
-		}
-	});
+	GetFilePickerToken(timeLogToken);
 	SetTimeLog->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
 }
 
@@ -659,13 +442,32 @@ void SeboApp::MainPage::MyCalendarPicker_SelectedDatesChanged(Windows::UI::Xaml:
 
 void SeboApp::MainPage::MyCalendarPicker_Loaded(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
-	Windows::Globalization::Calendar^ c = ref new Windows::Globalization::Calendar;
-	c->SetToNow();
-	DateTimeFormatter^ dateFormatter = ref new DateTimeFormatter(L"‎‎{month.integer(2)}/{day.integer(2)}/‎‎{year.abbreviated}");
-	DateTime dateToFormat = c->GetDateTime();
-	requestedDate = dateFormatter->Format(dateToFormat);
-	if (timeLogToken != nullptr)
+	TimeSpan period;
+	period.Duration = 1 * 10000000; // 10 million tickss per second
+	try
 	{
-		ReadTimeLog();
+		ThreadPoolTimer^ PeriodicTimer = ThreadPoolTimer::CreateTimer(
+			ref new TimerElapsedHandler([this](ThreadPoolTimer^ source)
+		{
+			// Do stuff
+			Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::High,
+				ref new Windows::UI::Core::DispatchedHandler([this]()
+			{
+				// Access UI elements
+				Windows::Globalization::Calendar^ c = ref new Windows::Globalization::Calendar;
+				c->SetToNow();
+				DateTimeFormatter^ dateFormatter = ref new DateTimeFormatter(L"‎‎{month.integer(2)}/{day.integer(2)}/‎‎{year.abbreviated}");
+				DateTime dateToFormat = c->GetDateTime();
+				requestedDate = dateFormatter->Format(dateToFormat);
+				if (timeLogToken != nullptr)
+				{
+					ReadTimeLog();
+				}
+			}));
+		}), period);
+	}
+	catch (const exception& e)
+	{
+
 	}
 }
