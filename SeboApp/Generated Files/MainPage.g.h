@@ -38,6 +38,7 @@ namespace SeboApp
     private:
         bool _contentLoaded;
     
+    
         private: ::Windows::UI::Xaml::Controls::Grid^ LayoutGrid;
         private: ::Windows::UI::Xaml::Controls::TextBlock^ textBlock;
         private: ::Windows::UI::Xaml::Controls::TextBox^ resultTextBox;

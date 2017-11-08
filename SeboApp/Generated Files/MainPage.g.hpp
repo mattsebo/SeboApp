@@ -6,6 +6,9 @@
 //------------------------------------------------------------------------------
 #include "pch.h"
 
+#pragma warning(push)
+#pragma warning(disable: 4100) // unreferenced formal parameter
+
 #if defined _DEBUG && !defined DISABLE_XAML_GENERATED_BINDING_DEBUG_OUTPUT
 extern "C" __declspec(dllimport) int __stdcall IsDebuggerPresent();
 #endif
@@ -27,89 +30,89 @@ void ::SeboApp::MainPage::Connect(int __connectionId, ::Platform::Object^ __targ
 {
     switch (__connectionId)
     {
-        case 1:
-            {
-                ::Windows::UI::Xaml::Controls::Page^ element1 = safe_cast<::Windows::UI::Xaml::Controls::Page^>(__target);
-                (safe_cast<::Windows::UI::Xaml::Controls::Page^>(element1))->Loaded += ref new ::Windows::UI::Xaml::RoutedEventHandler(this, (void (::SeboApp::MainPage::*)
-                    (::Platform::Object^, ::Windows::UI::Xaml::RoutedEventArgs^))&MainPage::Page_Loaded);
-            }
-            break;
-        case 2:
-            {
-                this->LayoutGrid = safe_cast<::Windows::UI::Xaml::Controls::Grid^>(__target);
-            }
-            break;
-        case 3:
-            {
-                this->textBlock = safe_cast<::Windows::UI::Xaml::Controls::TextBlock^>(__target);
-            }
-            break;
-        case 4:
-            {
-                this->resultTextBox = safe_cast<::Windows::UI::Xaml::Controls::TextBox^>(__target);
-            }
-            break;
-        case 5:
-            {
-                this->progressBar = safe_cast<::Windows::UI::Xaml::Controls::ProgressBar^>(__target);
-            }
-            break;
-        case 6:
-            {
-                this->CS40Path = safe_cast<::Windows::UI::Xaml::Controls::Button^>(__target);
-                (safe_cast<::Windows::UI::Xaml::Controls::Button^>(this->CS40Path))->Click += ref new ::Windows::UI::Xaml::RoutedEventHandler(this, (void (::SeboApp::MainPage::*)
-                    (::Platform::Object^, ::Windows::UI::Xaml::RoutedEventArgs^))&MainPage::CS40Path_Click);
-            }
-            break;
-        case 7:
-            {
-                this->CS45Path = safe_cast<::Windows::UI::Xaml::Controls::Button^>(__target);
-                (safe_cast<::Windows::UI::Xaml::Controls::Button^>(this->CS45Path))->Click += ref new ::Windows::UI::Xaml::RoutedEventHandler(this, (void (::SeboApp::MainPage::*)
-                    (::Platform::Object^, ::Windows::UI::Xaml::RoutedEventArgs^))&MainPage::CS45Path_Click);
-            }
-            break;
-        case 8:
-            {
-                this->SetTimeLog = safe_cast<::Windows::UI::Xaml::Controls::Button^>(__target);
-                (safe_cast<::Windows::UI::Xaml::Controls::Button^>(this->SetTimeLog))->Click += ref new ::Windows::UI::Xaml::RoutedEventHandler(this, (void (::SeboApp::MainPage::*)
-                    (::Platform::Object^, ::Windows::UI::Xaml::RoutedEventArgs^))&MainPage::SetTimeLog_Click);
-            }
-            break;
-        case 9:
-            {
-                this->searchTextBox = safe_cast<::Windows::UI::Xaml::Controls::AutoSuggestBox^>(__target);
-                (safe_cast<::Windows::UI::Xaml::Controls::AutoSuggestBox^>(this->searchTextBox))->TextChanged += ref new ::Windows::Foundation::TypedEventHandler<::Windows::UI::Xaml::Controls::AutoSuggestBox^, ::Windows::UI::Xaml::Controls::AutoSuggestBoxTextChangedEventArgs^>(this, (void (::SeboApp::MainPage::*)
-                    (::Windows::UI::Xaml::Controls::AutoSuggestBox^, ::Windows::UI::Xaml::Controls::AutoSuggestBoxTextChangedEventArgs^))&MainPage::AutoSuggestBox_TextChanged);
-                (safe_cast<::Windows::UI::Xaml::Controls::AutoSuggestBox^>(this->searchTextBox))->QuerySubmitted += ref new ::Windows::Foundation::TypedEventHandler<::Windows::UI::Xaml::Controls::AutoSuggestBox^, ::Windows::UI::Xaml::Controls::AutoSuggestBoxQuerySubmittedEventArgs^>(this, (void (::SeboApp::MainPage::*)
-                    (::Windows::UI::Xaml::Controls::AutoSuggestBox^, ::Windows::UI::Xaml::Controls::AutoSuggestBoxQuerySubmittedEventArgs^))&MainPage::AutoSuggestBox_QuerySubmitted);
-                (safe_cast<::Windows::UI::Xaml::Controls::AutoSuggestBox^>(this->searchTextBox))->SuggestionChosen += ref new ::Windows::Foundation::TypedEventHandler<::Windows::UI::Xaml::Controls::AutoSuggestBox^, ::Windows::UI::Xaml::Controls::AutoSuggestBoxSuggestionChosenEventArgs^>(this, (void (::SeboApp::MainPage::*)
-                    (::Windows::UI::Xaml::Controls::AutoSuggestBox^, ::Windows::UI::Xaml::Controls::AutoSuggestBoxSuggestionChosenEventArgs^))&MainPage::AutoSuggestBox_SuggestionChosen);
-            }
-            break;
-        case 10:
-            {
-                this->NumCutSheets = safe_cast<::Windows::UI::Xaml::Controls::TextBlock^>(__target);
-            }
-            break;
-        case 11:
-            {
-                this->textBlock_Copy = safe_cast<::Windows::UI::Xaml::Controls::TextBlock^>(__target);
-            }
-            break;
-        case 12:
-            {
-                this->textBlock_Copy1 = safe_cast<::Windows::UI::Xaml::Controls::TextBlock^>(__target);
-            }
-            break;
-        case 13:
-            {
-                this->MyCalendarPicker = safe_cast<::Windows::UI::Xaml::Controls::CalendarView^>(__target);
-                (safe_cast<::Windows::UI::Xaml::Controls::CalendarView^>(this->MyCalendarPicker))->SelectedDatesChanged += ref new ::Windows::Foundation::TypedEventHandler<::Windows::UI::Xaml::Controls::CalendarView^, ::Windows::UI::Xaml::Controls::CalendarViewSelectedDatesChangedEventArgs^>(this, (void (::SeboApp::MainPage::*)
-                    (::Windows::UI::Xaml::Controls::CalendarView^, ::Windows::UI::Xaml::Controls::CalendarViewSelectedDatesChangedEventArgs^))&MainPage::MyCalendarPicker_SelectedDatesChanged);
-                (safe_cast<::Windows::UI::Xaml::Controls::CalendarView^>(this->MyCalendarPicker))->Loaded += ref new ::Windows::UI::Xaml::RoutedEventHandler(this, (void (::SeboApp::MainPage::*)
-                    (::Platform::Object^, ::Windows::UI::Xaml::RoutedEventArgs^))&MainPage::MyCalendarPicker_Loaded);
-            }
-            break;
+    case 1:
+        {
+            ::Windows::UI::Xaml::Controls::Page^ element1 = safe_cast<::Windows::UI::Xaml::Controls::Page^>(__target);
+            (safe_cast<::Windows::UI::Xaml::Controls::Page^>(element1))->Loaded += ref new ::Windows::UI::Xaml::RoutedEventHandler(this, (void (::SeboApp::MainPage::*)
+                (::Platform::Object^, ::Windows::UI::Xaml::RoutedEventArgs^))&MainPage::Page_Loaded);
+        }
+        break;
+    case 2:
+        {
+            this->LayoutGrid = safe_cast<::Windows::UI::Xaml::Controls::Grid^>(__target);
+        }
+        break;
+    case 3:
+        {
+            this->textBlock = safe_cast<::Windows::UI::Xaml::Controls::TextBlock^>(__target);
+        }
+        break;
+    case 4:
+        {
+            this->resultTextBox = safe_cast<::Windows::UI::Xaml::Controls::TextBox^>(__target);
+        }
+        break;
+    case 5:
+        {
+            this->progressBar = safe_cast<::Windows::UI::Xaml::Controls::ProgressBar^>(__target);
+        }
+        break;
+    case 6:
+        {
+            this->CS40Path = safe_cast<::Windows::UI::Xaml::Controls::Button^>(__target);
+            (safe_cast<::Windows::UI::Xaml::Controls::Button^>(this->CS40Path))->Click += ref new ::Windows::UI::Xaml::RoutedEventHandler(this, (void (::SeboApp::MainPage::*)
+                (::Platform::Object^, ::Windows::UI::Xaml::RoutedEventArgs^))&MainPage::CS40Path_Click);
+        }
+        break;
+    case 7:
+        {
+            this->CS45Path = safe_cast<::Windows::UI::Xaml::Controls::Button^>(__target);
+            (safe_cast<::Windows::UI::Xaml::Controls::Button^>(this->CS45Path))->Click += ref new ::Windows::UI::Xaml::RoutedEventHandler(this, (void (::SeboApp::MainPage::*)
+                (::Platform::Object^, ::Windows::UI::Xaml::RoutedEventArgs^))&MainPage::CS45Path_Click);
+        }
+        break;
+    case 8:
+        {
+            this->SetTimeLog = safe_cast<::Windows::UI::Xaml::Controls::Button^>(__target);
+            (safe_cast<::Windows::UI::Xaml::Controls::Button^>(this->SetTimeLog))->Click += ref new ::Windows::UI::Xaml::RoutedEventHandler(this, (void (::SeboApp::MainPage::*)
+                (::Platform::Object^, ::Windows::UI::Xaml::RoutedEventArgs^))&MainPage::SetTimeLog_Click);
+        }
+        break;
+    case 9:
+        {
+            this->searchTextBox = safe_cast<::Windows::UI::Xaml::Controls::AutoSuggestBox^>(__target);
+            (safe_cast<::Windows::UI::Xaml::Controls::AutoSuggestBox^>(this->searchTextBox))->TextChanged += ref new ::Windows::Foundation::TypedEventHandler<::Windows::UI::Xaml::Controls::AutoSuggestBox^, ::Windows::UI::Xaml::Controls::AutoSuggestBoxTextChangedEventArgs^>(this, (void (::SeboApp::MainPage::*)
+                (::Windows::UI::Xaml::Controls::AutoSuggestBox^, ::Windows::UI::Xaml::Controls::AutoSuggestBoxTextChangedEventArgs^))&MainPage::AutoSuggestBox_TextChanged);
+            (safe_cast<::Windows::UI::Xaml::Controls::AutoSuggestBox^>(this->searchTextBox))->QuerySubmitted += ref new ::Windows::Foundation::TypedEventHandler<::Windows::UI::Xaml::Controls::AutoSuggestBox^, ::Windows::UI::Xaml::Controls::AutoSuggestBoxQuerySubmittedEventArgs^>(this, (void (::SeboApp::MainPage::*)
+                (::Windows::UI::Xaml::Controls::AutoSuggestBox^, ::Windows::UI::Xaml::Controls::AutoSuggestBoxQuerySubmittedEventArgs^))&MainPage::AutoSuggestBox_QuerySubmitted);
+            (safe_cast<::Windows::UI::Xaml::Controls::AutoSuggestBox^>(this->searchTextBox))->SuggestionChosen += ref new ::Windows::Foundation::TypedEventHandler<::Windows::UI::Xaml::Controls::AutoSuggestBox^, ::Windows::UI::Xaml::Controls::AutoSuggestBoxSuggestionChosenEventArgs^>(this, (void (::SeboApp::MainPage::*)
+                (::Windows::UI::Xaml::Controls::AutoSuggestBox^, ::Windows::UI::Xaml::Controls::AutoSuggestBoxSuggestionChosenEventArgs^))&MainPage::AutoSuggestBox_SuggestionChosen);
+        }
+        break;
+    case 10:
+        {
+            this->NumCutSheets = safe_cast<::Windows::UI::Xaml::Controls::TextBlock^>(__target);
+        }
+        break;
+    case 11:
+        {
+            this->textBlock_Copy = safe_cast<::Windows::UI::Xaml::Controls::TextBlock^>(__target);
+        }
+        break;
+    case 12:
+        {
+            this->textBlock_Copy1 = safe_cast<::Windows::UI::Xaml::Controls::TextBlock^>(__target);
+        }
+        break;
+    case 13:
+        {
+            this->MyCalendarPicker = safe_cast<::Windows::UI::Xaml::Controls::CalendarView^>(__target);
+            (safe_cast<::Windows::UI::Xaml::Controls::CalendarView^>(this->MyCalendarPicker))->SelectedDatesChanged += ref new ::Windows::Foundation::TypedEventHandler<::Windows::UI::Xaml::Controls::CalendarView^, ::Windows::UI::Xaml::Controls::CalendarViewSelectedDatesChangedEventArgs^>(this, (void (::SeboApp::MainPage::*)
+                (::Windows::UI::Xaml::Controls::CalendarView^, ::Windows::UI::Xaml::Controls::CalendarViewSelectedDatesChangedEventArgs^))&MainPage::MyCalendarPicker_SelectedDatesChanged);
+            (safe_cast<::Windows::UI::Xaml::Controls::CalendarView^>(this->MyCalendarPicker))->Loaded += ref new ::Windows::UI::Xaml::RoutedEventHandler(this, (void (::SeboApp::MainPage::*)
+                (::Platform::Object^, ::Windows::UI::Xaml::RoutedEventArgs^))&MainPage::MyCalendarPicker_Loaded);
+        }
+        break;
     }
     _contentLoaded = true;
 }
@@ -120,5 +123,7 @@ void ::SeboApp::MainPage::Connect(int __connectionId, ::Platform::Object^ __targ
     __target;               // unreferenced
     return nullptr;
 }
+
+#pragma warning(pop)
 
 

@@ -27,6 +27,12 @@ public:
 		batch = ref new Platform::String(rawFile.substr(0, rawFile.length() - 4).c_str());
 		filename = ref new Platform::String(rawFile.c_str());
 	}
+	Sheet()
+		:
+		filename(L"Empty"),
+		batch(L""),
+		isCut(false)
+	{}
 	Platform::String^ GetFilename()
 	{
 		return filename;

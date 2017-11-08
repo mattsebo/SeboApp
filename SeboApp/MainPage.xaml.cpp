@@ -280,7 +280,7 @@ void SeboApp::MainPage::DoOnSearchEvent(Platform::String^ search, Windows::UI::X
 	{
 		CS45->InitSheets(search, CS40);
 		TimeSpan period;
-		period.Duration = (1 * 10000000) /3; // 10 million tickss per second
+		period.Duration = (1 * 10000000); // 10 million tickss per second
 		try
 		{
 			ThreadPoolTimer^ PeriodicTimer = ThreadPoolTimer::CreateTimer(
@@ -305,10 +305,12 @@ void SeboApp::MainPage::DoOnSearchEvent(Platform::String^ search, Windows::UI::X
 void SeboApp::MainPage::Page_Loaded(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
 	TimeSpan period;
-	period.Duration = 1 * 10000000; // 10 million tickss per second
-	try
+	TimeSpan refreshDataPeriod;
+	period.Duration = 1 * 10000000; // 10 million ticks per second
+	refreshDataPeriod.Duration = 3 * (60 * 10000000);
+	try // delay start of reading machine logs, to allow config to be read.
 	{
-		ThreadPoolTimer^ PeriodicTimer = ThreadPoolTimer::CreateTimer(
+		ThreadPoolTimer::CreateTimer(
 			ref new TimerElapsedHandler([this](ThreadPoolTimer^ source)
 		{
 			// Do stuff
@@ -319,6 +321,28 @@ void SeboApp::MainPage::Page_Loaded(Platform::Object^ sender, Windows::UI::Xaml:
 				InitMachineLogs(resultTextBox, searchTextBox);
 			}));
 		}), period);
+	}
+	catch (const exception& e)
+	{
+
+	}
+	try // periodic timer to update data.
+	{
+		ThreadPoolTimer::CreatePeriodicTimer(
+			ref new TimerElapsedHandler([this](ThreadPoolTimer^ source)
+		{
+			// Do stuff
+			Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::High,
+				ref new Windows::UI::Core::DispatchedHandler([this]()
+			{
+				// Access UI elements
+				if (timeLogToken != nullptr)
+				{
+					ReadTimeLog();
+				}
+				InitMachineLogs(resultTextBox, searchTextBox);
+			}));
+		}), refreshDataPeriod);
 	}
 	catch (const exception& e)
 	{

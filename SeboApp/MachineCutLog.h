@@ -84,9 +84,12 @@ public:
 		{
 			workOrders->Lookup(it)->Init(GetBatchFromString(it));
 		}
-		for (auto it : othermachine->GetWorkOrdersShort()->Lookup(search))
+		if (othermachine->GetWorkOrdersShort()->HasKey(search))
 		{
-			othermachine->GetWorkOrders()->Lookup(it)->Init(GetBatchFromString(it));
+			for (auto it : othermachine->GetWorkOrdersShort()->Lookup(search))
+			{
+				othermachine->GetWorkOrders()->Lookup(it)->Init(GetBatchFromString(it));
+			}
 		}
 	}
 	bool KeyExists(Platform::String^ search)
@@ -102,10 +105,16 @@ public:
 		{
 			if (workOrders->HasKey(workorder) && othermachine->GetWorkOrders()->HasKey(workorder)) // scenario where both machines has current workorder.
 			{
+
 				for (auto sheet : workOrders->Lookup(workorder)->GetSheets())
 				{
 					numSheets++;
-					auto otherMachineSheet = othermachine->GetWorkOrders()->Lookup(workorder)->GetSheets()->Lookup(sheet->Key);
+					auto otherMachineSheetMap = othermachine->GetWorkOrders()->Lookup(workorder)->GetSheets();
+					auto otherMachineSheet = ref new Sheet();
+					if (otherMachineSheetMap->HasKey(sheet->Key))
+					{
+						otherMachineSheet = otherMachineSheetMap->Lookup(sheet->Key);
+					}
 					if (sheet->Value->GetIsCut() || otherMachineSheet->GetIsCut())
 					{
 						numSheetsCut++;
