@@ -9,7 +9,7 @@
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
     mc:Ignorable="d" Loaded="Page_Loaded">
 
-    <Grid Name = "LayoutGrid"  Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Margin="0,0,0,0">
+    <Grid Name = "LayoutGrid"  Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Margin="0,0,0,-56">
         <Grid.RowDefinitions>
 
         </Grid.RowDefinitions>
@@ -24,5 +24,7 @@
         <TextBlock x:Name="textBlock_Copy" HorizontalAlignment="Left" Margin="55,154,0,0" TextWrapping="Wrap" Text="Sheets left to cut:" VerticalAlignment="Top" Width="167"/>
         <TextBlock x:Name="textBlock_Copy1" HorizontalAlignment="Left" Margin="472,413,0,0" TextWrapping="Wrap" Text="# of sheets cut on this date:" VerticalAlignment="Top" Width="190"/>
         <CalendarView x:Name="MyCalendarPicker" HorizontalAlignment="Left" Margin="420,61,0,0" VerticalAlignment="Top" SelectedDatesChanged="MyCalendarPicker_SelectedDatesChanged" Loaded="MyCalendarPicker_Loaded" Height="Auto" Width="Auto"/>
+        <TextBox x:Name="recentsTextBox" HorizontalAlignment="Left" Margin="420,575,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="296" Height="145" IsReadOnly="True"/>
+        <TextBlock x:Name="textBlock_Copy2" HorizontalAlignment="Left" Margin="505,550,0,0" TextWrapping="Wrap" Text="Recent sheets cut:" VerticalAlignment="Top" Width="124" RenderTransformOrigin="0.935,0.2"/>
     </Grid>
 </Page>

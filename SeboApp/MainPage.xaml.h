@@ -30,6 +30,7 @@ namespace SeboApp
 		void InitConfig();
 		void InitMachineLogs(Windows::UI::Xaml::Controls::TextBox^ textbox, Windows::UI::Xaml::Controls::AutoSuggestBox^ searchbox);
 		void ReadTimeLog();
+		Platform::String^ GetRecentSheets(Platform::String^ file);
 		void CountDatesFromFile(Platform::String^ file);
 		void ExplodeFile(Platform::String^ file);
 		void ProcessConfigString(Platform::String^ file);

@@ -38,7 +38,6 @@ namespace SeboApp
     private:
         bool _contentLoaded;
     
-    
         private: ::Windows::UI::Xaml::Controls::Grid^ LayoutGrid;
         private: ::Windows::UI::Xaml::Controls::TextBlock^ textBlock;
         private: ::Windows::UI::Xaml::Controls::TextBox^ resultTextBox;
@@ -51,6 +50,8 @@ namespace SeboApp
         private: ::Windows::UI::Xaml::Controls::TextBlock^ textBlock_Copy;
         private: ::Windows::UI::Xaml::Controls::TextBlock^ textBlock_Copy1;
         private: ::Windows::UI::Xaml::Controls::CalendarView^ MyCalendarPicker;
+        private: ::Windows::UI::Xaml::Controls::TextBox^ recentsTextBox;
+        private: ::Windows::UI::Xaml::Controls::TextBlock^ textBlock_Copy2;
     };
 }
 

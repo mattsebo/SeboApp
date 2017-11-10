@@ -122,6 +122,7 @@ void SeboApp::MainPage::InitMachineLogs(Windows::UI::Xaml::Controls::TextBox^ te
 void SeboApp::MainPage::ReadTimeLog()
 {
 	numSheetsCutOnDate = 0;
+	Platform::String^ recentSheets = ref new String();
 	try
 	{
 		if (StorageApplicationPermissions::FutureAccessList->ContainsItem(timeLogToken))
@@ -134,12 +135,15 @@ void SeboApp::MainPage::ReadTimeLog()
 					// check each file within the subfolder
 					for (auto file : files)
 					{
-						create_task(FileIO::ReadTextAsync(file)).then([this, file](task<String^> task)
+						create_task(FileIO::ReadTextAsync(file)).then([=](task<String^> task)
 						{
 							try
 							{
 								String^ fileContent = task.get();
 								CountDatesFromFile(fileContent);
+								auto test = GetRecentSheets(fileContent);
+								recentSheets->Concat(test);
+								recentSheets += GetRecentSheets(fileContent);
 							}
 							catch (COMException^ ex)
 							{
@@ -148,6 +152,12 @@ void SeboApp::MainPage::ReadTimeLog()
 						}).then([=](void)
 						{
 							NumCutSheets->Text = numSheetsCutOnDate.ToString();
+							Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::High,
+								ref new Windows::UI::Core::DispatchedHandler([this]()
+							{
+								// Access UI elements
+								//recentsTextBox->
+							}));
 						});
 					}
 				});
@@ -162,6 +172,29 @@ void SeboApp::MainPage::ReadTimeLog()
 	{
 
 	}
+}
+
+Platform::String^ SeboApp::MainPage::GetRecentSheets(Platform::String ^ file)
+{
+	int count = 0;
+	String^ recents;
+	for (auto it = file->End(); count < 3; it--)
+	{
+		String^ delimiter;
+		for (int i = 0; i < 2; i++)
+		{
+			delimiter += (*(it + i)).ToString();
+		}
+		if (delimiter == L"\r\n")
+		{
+			++count;
+		}
+		else
+		{
+			recents += (*it).ToString();
+		}
+	}
+	return recents;
 }
 
 void SeboApp::MainPage::CountDatesFromFile(Platform::String^ file)

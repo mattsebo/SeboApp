@@ -58,28 +58,28 @@ void ::SeboApp::App::InitializeComponent()
 #endif
 }
 
+
 ::Windows::UI::Xaml::Markup::IXamlType^ ::SeboApp::App::GetXamlType(::Windows::UI::Xaml::Interop::TypeName type)
 {
-    return _AppProvider->GetXamlTypeByType(type);
+    if(_provider == nullptr)
+    {
+        _provider = ref new XamlTypeInfo::InfoProvider::XamlTypeInfoProvider();
+    }
+    return _provider->GetXamlTypeByType(type);
 }
 
 ::Windows::UI::Xaml::Markup::IXamlType^ ::SeboApp::App::GetXamlType(::Platform::String^ fullName)
 {
-    return _AppProvider->GetXamlTypeByName(fullName);
+    if(_provider == nullptr)
+    {
+        _provider = ref new XamlTypeInfo::InfoProvider::XamlTypeInfoProvider();
+    }
+    return _provider->GetXamlTypeByName(fullName);
 }
 
 ::Platform::Array<::Windows::UI::Xaml::Markup::XmlnsDefinition>^ ::SeboApp::App::GetXmlnsDefinitions()
 {
     return ref new ::Platform::Array<::Windows::UI::Xaml::Markup::XmlnsDefinition>(0);
-}
-
-::XamlTypeInfo::InfoProvider::XamlTypeInfoProvider^ ::SeboApp::App::_AppProvider::get()
-{
-    if (__provider == nullptr)
-    {
-        __provider = ref new ::XamlTypeInfo::InfoProvider::XamlTypeInfoProvider();
-    }
-    return __provider;
 }
 
 #ifndef DISABLE_XAML_GENERATED_MAIN

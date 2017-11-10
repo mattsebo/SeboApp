@@ -113,6 +113,16 @@ void ::SeboApp::MainPage::Connect(int __connectionId, ::Platform::Object^ __targ
                 (::Platform::Object^, ::Windows::UI::Xaml::RoutedEventArgs^))&MainPage::MyCalendarPicker_Loaded);
         }
         break;
+    case 14:
+        {
+            this->recentsTextBox = safe_cast<::Windows::UI::Xaml::Controls::TextBox^>(__target);
+        }
+        break;
+    case 15:
+        {
+            this->textBlock_Copy2 = safe_cast<::Windows::UI::Xaml::Controls::TextBlock^>(__target);
+        }
+        break;
     }
     _contentLoaded = true;
 }
