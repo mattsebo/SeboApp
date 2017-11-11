@@ -53,9 +53,6 @@
     <Image Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="Assets\StoreLogo.png">
-      <Filter>Assets</Filter>
-    </Image>
     <Image Include="Assets\Wide310x150Logo.scale-200.png">
       <Filter>Assets</Filter>
     </Image>
@@ -120,6 +117,9 @@
       <Filter>Assets</Filter>
     </Image>
     <Image Include="Assets\SplashScreen.scale-150.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\StoreLogo.scale-100.png">
       <Filter>Assets</Filter>
     </Image>
   </ItemGroup>
