@@ -164,18 +164,19 @@ private:
 	Platform::String^ GetBatchFromString(Platform::String^ s)
 	{
 		std::wstring name = s->Begin();
-		for (int i = name.length(); i > 0; i--)
+		for (auto i = name.length(); i > 0; i--)
 		{
 			if (name[i] == L'_')
 			{
 				return ref new Platform::String(name.substr(i + 1, name.length()).c_str());
 			}
 		}
+		return ref new Platform::String(L"BATCH NOT FOUND!");
 	}
 	void RemoveBatchFromString(Platform::String^& name)
 	{
 		std::wstring s = name->Begin();
-		for (int i = s.length(); i > 0; i--)
+		for (auto i = s.length(); i > 0; i--)
 		{
 			if (s[i] == L'_')
 			{

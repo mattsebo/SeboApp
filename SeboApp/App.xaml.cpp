@@ -29,6 +29,8 @@ using namespace Windows::UI::Xaml::Navigation;
 App::App()
 {
     InitializeComponent();
+	Windows::UI::ViewManagement::ApplicationView::PreferredLaunchViewSize = Windows::Foundation::Size(800,800);
+	Windows::UI::ViewManagement::ApplicationView::PreferredLaunchWindowingMode = Windows::UI::ViewManagement::ApplicationViewWindowingMode::PreferredLaunchViewSize;
     Suspending += ref new SuspendingEventHandler(this, &App::OnSuspending);
 }
 

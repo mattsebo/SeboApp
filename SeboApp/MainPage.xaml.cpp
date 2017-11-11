@@ -122,7 +122,6 @@ void SeboApp::MainPage::InitMachineLogs(Windows::UI::Xaml::Controls::TextBox^ te
 void SeboApp::MainPage::ReadTimeLog()
 {
 	numSheetsCutOnDate = 0;
-	Platform::String^ recentSheets = ref new String();
 	try
 	{
 		if (StorageApplicationPermissions::FutureAccessList->ContainsItem(timeLogToken))
@@ -141,9 +140,14 @@ void SeboApp::MainPage::ReadTimeLog()
 							{
 								String^ fileContent = task.get();
 								CountDatesFromFile(fileContent);
-								auto test = GetRecentSheets(fileContent);
-								recentSheets->Concat(test);
-								recentSheets += GetRecentSheets(fileContent);
+								String^ recentSheets = GetRecentSheets(fileContent);
+								Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::High,
+									ref new Windows::UI::Core::DispatchedHandler([this, recentSheets,file]()
+								{
+									// Access UI elements
+									recentsTextBox->Text += file->Name + L":\n";
+									recentsTextBox->Text += recentSheets;
+								}));
 							}
 							catch (COMException^ ex)
 							{
@@ -152,12 +156,6 @@ void SeboApp::MainPage::ReadTimeLog()
 						}).then([=](void)
 						{
 							NumCutSheets->Text = numSheetsCutOnDate.ToString();
-							Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::High,
-								ref new Windows::UI::Core::DispatchedHandler([this]()
-							{
-								// Access UI elements
-								//recentsTextBox->
-							}));
 						});
 					}
 				});
@@ -168,7 +166,7 @@ void SeboApp::MainPage::ReadTimeLog()
 			resultTextBox->Text += L"CS40 Path not found!\n";
 		}
 	}
-	catch (const exception& e)
+	catch (const COMException^ e)
 	{
 
 	}
@@ -177,13 +175,15 @@ void SeboApp::MainPage::ReadTimeLog()
 Platform::String^ SeboApp::MainPage::GetRecentSheets(Platform::String ^ file)
 {
 	int count = 0;
-	String^ recents;
-	for (auto it = file->End(); count < 3; it--)
+	std::wstring recents;
+
+	// get last 3 lines from file:
+	for (auto it = file->End() - 3; count < 3; it--)
 	{
-		String^ delimiter;
+		std::wstring delimiter;
 		for (int i = 0; i < 2; i++)
 		{
-			delimiter += (*(it + i)).ToString();
+			delimiter += (*(it + i));
 		}
 		if (delimiter == L"\r\n")
 		{
@@ -191,21 +191,28 @@ Platform::String^ SeboApp::MainPage::GetRecentSheets(Platform::String ^ file)
 		}
 		else
 		{
-			recents += (*it).ToString();
+			recents = (*it) + recents;
 		}
 	}
-	return recents;
+	// remove 'PROGRAM CUT : ' from string.
+	while (recents.find(L"PROGRAM CUT : ") != std::string::npos)
+	{
+		std::string::size_type found = recents.find(L"PROGRAM CUT : ");
+		recents.erase(found, 14);
+	}
+	recents += L"\n";
+	return ref new String(recents.c_str());
 }
 
 void SeboApp::MainPage::CountDatesFromFile(Platform::String^ file)
 {
 	std::wstring stdFile = file->Begin();
-	for (int i = 0; i < file->Length() - requestedDate->Length() + 4; ++i)
+	for (unsigned int i = 0; i < file->Length() - requestedDate->Length() + 4; ++i)
 	{
 		std::wstring s = stdFile.substr(i, requestedDate->Length() - 4).c_str();
 		std::wstring date = requestedDate->Begin();
 		std::wstring dt;
-		for (int j = 0; j < requestedDate->Length(); ++j)
+		for ( unsigned int j = 0; j < requestedDate->Length(); ++j)
 		{
 			if (date.at(j) < 200)
 			{
@@ -328,7 +335,7 @@ void SeboApp::MainPage::DoOnSearchEvent(Platform::String^ search, Windows::UI::X
 				}));
 			}), period);
 		}
-		catch (const exception& e)
+		catch (const COMException^ e)
 		{
 
 		}
@@ -355,7 +362,7 @@ void SeboApp::MainPage::Page_Loaded(Platform::Object^ sender, Windows::UI::Xaml:
 			}));
 		}), period);
 	}
-	catch (const exception& e)
+	catch (const COMException^ e)
 	{
 
 	}
@@ -377,7 +384,7 @@ void SeboApp::MainPage::Page_Loaded(Platform::Object^ sender, Windows::UI::Xaml:
 			}));
 		}), refreshDataPeriod);
 	}
-	catch (const exception& e)
+	catch (const COMException^ e)
 	{
 
 	}
@@ -523,7 +530,7 @@ void SeboApp::MainPage::MyCalendarPicker_Loaded(Platform::Object^ sender, Window
 			}));
 		}), period);
 	}
-	catch (const exception& e)
+	catch (const COMException^ e)
 	{
 
 	}

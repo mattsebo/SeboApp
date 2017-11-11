@@ -14,7 +14,7 @@
 
         </Grid.RowDefinitions>
         <TextBlock x:Name="textBlock" HorizontalAlignment="Left" Margin="55,61,0,0" TextWrapping="Wrap" Text="Find a workorder:" VerticalAlignment="Top" Width="167"/>
-        <TextBox x:Name="resultTextBox" HorizontalAlignment="Left" Margin="55,179,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="273" Height="541" IsReadOnly="True"/>
+        <TextBox x:Name="resultTextBox" HorizontalAlignment="Left" Margin="55,179,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="273" Height="571" IsReadOnly="True"/>
         <ProgressBar x:Name="progressBar" HorizontalAlignment="Left" Height="21" Margin="55,123,0,0" VerticalAlignment="Top" Width="273" Value="0" Foreground="#FF5DFF00" Background="Red"/>
         <Button x:Name="CS40Path" Visibility="Collapsed" Content="Set Path to CS40" HorizontalAlignment="Left" Margin="55,24,0,0" VerticalAlignment="Top" Click="CS40Path_Click"/>
         <Button x:Name="CS45Path" Visibility="Collapsed" Content="Set Path to CS45" HorizontalAlignment="Left" Margin="198,24,0,0" VerticalAlignment="Top" Click="CS45Path_Click"/>
@@ -24,7 +24,7 @@
         <TextBlock x:Name="textBlock_Copy" HorizontalAlignment="Left" Margin="55,154,0,0" TextWrapping="Wrap" Text="Sheets left to cut:" VerticalAlignment="Top" Width="167"/>
         <TextBlock x:Name="textBlock_Copy1" HorizontalAlignment="Left" Margin="472,413,0,0" TextWrapping="Wrap" Text="# of sheets cut on this date:" VerticalAlignment="Top" Width="190"/>
         <CalendarView x:Name="MyCalendarPicker" HorizontalAlignment="Left" Margin="420,61,0,0" VerticalAlignment="Top" SelectedDatesChanged="MyCalendarPicker_SelectedDatesChanged" Loaded="MyCalendarPicker_Loaded" Height="Auto" Width="Auto"/>
-        <TextBox x:Name="recentsTextBox" HorizontalAlignment="Left" Margin="420,575,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="296" Height="145" IsReadOnly="True"/>
+        <TextBox x:Name="recentsTextBox" FontSize="14" HorizontalAlignment="Left" Margin="370,575,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="398" Height="175" IsReadOnly="True"/>
         <TextBlock x:Name="textBlock_Copy2" HorizontalAlignment="Left" Margin="505,550,0,0" TextWrapping="Wrap" Text="Recent sheets cut:" VerticalAlignment="Top" Width="124" RenderTransformOrigin="0.935,0.2"/>
     </Grid>
 </Page>
