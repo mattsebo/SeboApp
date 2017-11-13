@@ -122,6 +122,7 @@ void SeboApp::MainPage::InitMachineLogs(Windows::UI::Xaml::Controls::TextBox^ te
 void SeboApp::MainPage::ReadTimeLog()
 {
 	numSheetsCutOnDate = 0;
+	recentsTextBox->Text = L"";
 	try
 	{
 		if (StorageApplicationPermissions::FutureAccessList->ContainsItem(timeLogToken))

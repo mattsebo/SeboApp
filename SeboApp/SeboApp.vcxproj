@@ -166,8 +166,6 @@
     <None Include="SeboApp_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\..\Desktop\NEWSebo LogoV7.jpg" />
-    <Image Include="..\..\..\..\Desktop\youtube NEW Sebo Logo.png" />
     <Image Include="Assets\LockScreenLogo.scale-200.png" />
     <Image Include="Assets\SEBOLOGOPNG.altform-unplated_targetsize-16.png" />
     <Image Include="Assets\SEBOLOGOPNG.altform-unplated_targetsize-24.png" />
