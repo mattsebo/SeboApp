@@ -415,6 +415,7 @@ void SeboApp::MainPage::GetFilePickerToken(Platform::String^& token)
 					if (ex->HResult == FA_E_MAX_PERSISTED_ITEMS_REACHED)
 					{
 						// A real program would call Remove() to create room in the FAL.
+            StorageApplicationPermissions::FutureAccessList->Clear();
 						token = "The folder '" + folder->Name + "' was not added to the FAL list because the FAL list is full.";
 					}
 					else
